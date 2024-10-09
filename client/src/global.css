@@ -1,4 +1,5 @@
 .chess-container {
   max-height: 800px;
   max-width: 800px;
+  margin: 0 auto;
 }
