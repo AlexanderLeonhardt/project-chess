@@ -37,19 +37,17 @@ export default function ChessGame() {
       setCustomSquaresStyles({});
     }
     if (selectedSquare && square !== selectedSquare) {
-      if (game.moves().includes(square)) {
-        const move = makeAMove({
-          from: selectedSquare,
-          to: square,
-          promotion: "q",
-        });
-        
-        if (move === null) return false;
-        else socket.emit('move', move);
-        return true;
-      }
+      const move = makeAMove({
+        from: selectedSquare,
+        to: square,
+        promotion: "q",
+      });
+      
+      if (move === null) return false;
+      else socket.emit('move', move);
       setSelectedSquare(null);
       setCustomSquaresStyles({});
+      return true;
     }
     if (square !== selectedSquare && piece && piece[0] === orientation[0]) {
       const moves = game.moves({square, verbose: true});
