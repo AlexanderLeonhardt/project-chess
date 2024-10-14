@@ -12,7 +12,7 @@ export default function ChessGame() {
     background: 'radial-gradient(circle, rgba(0, 0, 0, 0.2) 25%, transparent 25%)',
   }
   const captureStyle = {
-    background: 'rgba(255, 0, 0, 0.5)',
+    background: 'radial-gradient(circle, rgba(255, 0, 0, 0.5) 65%, transparent 65%)',
   }
 
   function makeAMove(move) {
@@ -42,12 +42,12 @@ export default function ChessGame() {
       setCustomSquaresStyles({});
     }
     if (square !== selectedSquare && piece && piece[0] === orientation[0]) {
-      const moves = game.moves({square});
+      const moves = game.moves({square, verbose: true});
       if (moves.length > 0) {
         setSelectedSquare(square);
 
         const squareStyles = {}
-        game.moves({square, verbose: true}).forEach((move) => {
+        moves.forEach((move) => {
           const enemy = orientation[0] === 'w' ? 'b' : 'w';
           squareStyles[move.to] = game.get(move.to).color === enemy ? captureStyle : moveStyle;
         });
