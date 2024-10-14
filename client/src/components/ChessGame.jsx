@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3001');
+const socket = io('http://192.168.1.151:3001');
 
 export default function ChessGame() {
   const [game, setGame] = useState(new Chess());
   const [orientation, setOrientation] = useState('white');
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [customSquareStyles, setCustomSquaresStyles] = useState({});
+
+  useEffect(() => {
+    socket.on('move', (move) => makeAMove(move));
+
+    return () => socket.off('move');
+  }, []);
 
   const moveStyle = {
     background: 'radial-gradient(circle, rgba(0, 0, 0, 0.2) 25%, transparent 25%)',
@@ -19,7 +25,7 @@ export default function ChessGame() {
   }
 
   function makeAMove(move) {
-    const gameCopy = new Chess(game.fen());
+    const gameCopy = { ...game };
     const result = gameCopy.move(move);
     setGame(gameCopy);
     return result;
@@ -53,7 +59,7 @@ export default function ChessGame() {
         const squareStyles = {}
         moves.forEach((move) => {
           const enemy = orientation[0] === 'w' ? 'b' : 'w';
-          squareStyles[move.to] = game.get(move.to).color === enemy ? captureStyle : moveStyle;
+          squareStyles[move.to] = game.get(move.to) && game.get(move.to).color === enemy ? captureStyle : moveStyle;
         });
         setCustomSquaresStyles(squareStyles);
       }
@@ -65,7 +71,7 @@ export default function ChessGame() {
     const squareStyles = {}
     game.moves({square, verbose: true}).forEach((move) => {
       const enemy = orientation[0] === 'w' ? 'b' : 'w';
-      squareStyles[move.to] = game.get(move.to).color === enemy ? captureStyle : moveStyle;
+      squareStyles[move.to] = game.get(move.to) && game.get(move.to).color === enemy ? captureStyle : moveStyle;
     });
     setCustomSquaresStyles(squareStyles);
   }
@@ -88,21 +94,22 @@ export default function ChessGame() {
       <Chessboard 
         position={game.fen()} 
         boardOrientation={orientation}
-        isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.isGameOver() ? false : piece[0] === orientation[0])}
+        isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
         onSquareClick={onSquareClick}
         onPieceDragBegin={onPieceDragBegin}
         onPieceDrop={onPieceDrop}
         customSquareStyles={customSquareStyles}
         customDropSquareStyle={{}}
       />
-      {game.isGameOver() && <div>
+      <button onClick={() => setOrientation(orientation === 'white' ? 'black' : 'white')}>Flip board</button>
+      {game.game_over() && <div>
         <p>Game over</p>
-        {game.isCheckmate() && (
+        {game.in_checkmate() && (
           game.turn() === 'b' 
           ? <p>White has won</p>
           : <p>Black has won</p>
         )}
-        {game.isDraw() && <p>Game has ended in a draw</p>}
+        {game.in_draw() && <p>Game has ended in a draw</p>}
         <button onClick={() => setGame(new Chess())}>New game</button>
       </div>}
     </div>

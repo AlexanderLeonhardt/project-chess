@@ -8,7 +8,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:3000"]
+    origin: ["http://localhost:3000", "http://192.168.1.151:3000"]
   }
 });
 
@@ -16,7 +16,8 @@ io.on("connection", (socket) => {
   console.log('New connection');
 
   socket.on('move', (move) => {
-    console.log(move);
+    console.log('Move made', move);
+    socket.broadcast.emit('move', move);
   });
 });
 
