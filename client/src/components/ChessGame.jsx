@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:3001');
 
 export default function ChessGame() {
   const [game, setGame] = useState(new Chess());
@@ -36,6 +39,7 @@ export default function ChessGame() {
         });
         
         if (move === null) return false;
+        else socket.emit('move', move);
         return true;
       }
       setSelectedSquare(null);
@@ -75,6 +79,7 @@ export default function ChessGame() {
     setSelectedSquare(null);
     setCustomSquaresStyles({});
     if (move === null) return false;
+    else socket.emit('move', move);
     return true;
   }
 

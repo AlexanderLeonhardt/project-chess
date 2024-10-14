@@ -15,8 +15,8 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => {
   console.log('New connection');
 
-  socket.on('message', (msg) => {
-    console.log('Got message: ', msg);
+  socket.on('move', (move) => {
+    console.log(move);
   });
 });
 
