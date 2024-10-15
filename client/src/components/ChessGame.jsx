@@ -23,6 +23,19 @@ export default function ChessGame() {
   const captureStyle = {
     background: 'radial-gradient(circle, rgba(255, 0, 0, 0.5) 65%, transparent 65%)',
   }
+  const checkStyle = {
+    background: 'rgba(255, 0, 0, 0.7)',
+  }
+
+  function getKingSquare() {
+    const board = game.board();
+    for (let i = 0; i < board.length; i++) {
+      for (let j = 0; j < board[i].length; j++) {
+        if (board[i][j] && board[i][j].type === 'k' && board[i][j].color === game.turn()) return board[i][j].square;
+      }
+    }
+    return null;
+  }
 
   function makeAMove(move) {
     const gameCopy = { ...game };
@@ -34,7 +47,12 @@ export default function ChessGame() {
   function onSquareClick(square, piece) {
     if (selectedSquare) {
       setSelectedSquare(null);
-      setCustomSquaresStyles({});
+      let kingSquare;
+      if (game.in_check()) {
+        kingSquare = getKingSquare();
+      }
+      if (kingSquare) setCustomSquaresStyles({ [kingSquare]: checkStyle });
+      else setCustomSquaresStyles({});
     }
     if (selectedSquare && square !== selectedSquare) {
       const move = makeAMove({
@@ -45,8 +63,15 @@ export default function ChessGame() {
       
       if (move === null) return false;
       else socket.emit('move', move);
+
+      let kingSquare;
+      if (game.in_check()) {
+        kingSquare = getKingSquare();
+      }
+      if (kingSquare) setCustomSquaresStyles({ [kingSquare]: checkStyle });
+      else setCustomSquaresStyles({});
+
       setSelectedSquare(null);
-      setCustomSquaresStyles({});
       return true;
     }
     if (square !== selectedSquare && piece && piece[0] === orientation[0]) {
@@ -71,7 +96,12 @@ export default function ChessGame() {
       const enemy = orientation[0] === 'w' ? 'b' : 'w';
       squareStyles[move.to] = game.get(move.to) && game.get(move.to).color === enemy ? captureStyle : moveStyle;
     });
-    setCustomSquaresStyles(squareStyles);
+    let kingSquare;
+    if (game.in_check()) {
+      kingSquare = getKingSquare();
+    }
+    if (kingSquare) setCustomSquaresStyles({ ...squareStyles, [kingSquare]: checkStyle });
+    else setCustomSquaresStyles(squareStyles);
   }
 
   function onPieceDrop(sourceSquare, targetSquare, piece) {
@@ -81,7 +111,12 @@ export default function ChessGame() {
       promotion: piece[1].toLowerCase() ?? "q",
     });
     setSelectedSquare(null);
-    setCustomSquaresStyles({});
+    let kingSquare;
+    if (game.in_check()) {
+      kingSquare = getKingSquare();
+    }
+    if (kingSquare) setCustomSquaresStyles({ [kingSquare]: checkStyle });
+    else setCustomSquaresStyles({});
     if (move === null) return false;
     else socket.emit('move', move);
     return true;
@@ -92,7 +127,7 @@ export default function ChessGame() {
       <Chessboard 
         position={game.fen()} 
         boardOrientation={orientation}
-        isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
+        //isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
         onSquareClick={onSquareClick}
         onPieceDragBegin={onPieceDragBegin}
         onPieceDrop={onPieceDrop}
