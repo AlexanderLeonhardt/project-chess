@@ -10,6 +10,7 @@ export default function ChessGame() {
   const [orientation, setOrientation] = useState('white');
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [customSquareStyles, setCustomSquaresStyles] = useState({});
+  const [lastMove, setLastMove] = useState(null);
 
   useEffect(() => {
     socket.on('move', (move) => makeAMove(move));
@@ -26,6 +27,9 @@ export default function ChessGame() {
   const checkStyle = {
     background: 'rgba(255, 0, 0, 0.7)',
   }
+  const lastMoveStyle = {
+    background: 'rgba(255, 255, 0, 0.4)',
+  }
 
   function getKingSquare() {
     const board = game.board();
@@ -41,6 +45,11 @@ export default function ChessGame() {
     const gameCopy = { ...game };
     const result = gameCopy.move(move);
     setGame(gameCopy);
+
+    if (result) {
+      setLastMove(move);
+    }
+
     return result;
   }
 
@@ -131,7 +140,13 @@ export default function ChessGame() {
         onSquareClick={onSquareClick}
         onPieceDragBegin={onPieceDragBegin}
         onPieceDrop={onPieceDrop}
-        customSquareStyles={customSquareStyles}
+        customSquareStyles={
+          {
+            ...customSquareStyles,
+            [lastMove?.from]: lastMoveStyle,
+            [lastMove?.to]: lastMoveStyle,
+          }
+        }
         customDropSquareStyle={{}}
       />
       <button onClick={() => setOrientation(orientation === 'white' ? 'black' : 'white')}>Flip board</button>
