@@ -127,7 +127,7 @@ export default function ChessGame() {
       <Chessboard 
         position={game.fen()} 
         boardOrientation={orientation}
-        //isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
+        isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
         onSquareClick={onSquareClick}
         onPieceDragBegin={onPieceDragBegin}
         onPieceDrop={onPieceDrop}
