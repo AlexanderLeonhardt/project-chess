@@ -5,6 +5,21 @@ import { io } from 'socket.io-client';
 
 const socket = io('http://192.168.1.151:3001');
 
+const styles = {
+  move: { 
+    background: 'radial-gradient(circle, rgba(0, 0, 0, 0.2) 25%, transparent 25%)' 
+  },
+  capture: { 
+    background: 'radial-gradient(circle, rgba(255, 0, 0, 0.5) 65%, transparent 65%)' 
+  },
+  check: { 
+    background: 'rgba(255, 0, 0, 0.7)' 
+  },
+  lastMove: { 
+    background: 'rgba(255, 255, 0, 0.4)' 
+  },
+}
+
 export default function ChessGame() {
   const [game, setGame] = useState(new Chess());
   const [orientation, setOrientation] = useState('white');
@@ -17,21 +32,6 @@ export default function ChessGame() {
 
     return () => socket.off('move');
   }, []);
-
-  const styles = {
-    move: { 
-      background: 'radial-gradient(circle, rgba(0, 0, 0, 0.2) 25%, transparent 25%)' 
-    },
-    capture: { 
-      background: 'radial-gradient(circle, rgba(255, 0, 0, 0.5) 65%, transparent 65%)' 
-    },
-    check: { 
-      background: 'rgba(255, 0, 0, 0.7)' 
-    },
-    lastMove: { 
-      background: 'rgba(255, 255, 0, 0.4)' 
-    },
-  }
 
   function getKingSquare() {
     const board = game.board();
@@ -54,8 +54,8 @@ export default function ChessGame() {
   function makeAMove(move) {
     const gameCopy = { ...game };
     const result = gameCopy.move(move);
-    setGame(gameCopy);
     if (result) {
+      setGame(gameCopy);
       setLastMove(move);
     }
     return result;
