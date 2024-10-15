@@ -35,35 +35,49 @@ export default function ChessGame() {
 
   function getKingSquare() {
     const board = game.board();
-    for (let i = 0; i < board.length; i++) {
-      for (let j = 0; j < board[i].length; j++) {
-        if (board[i][j] && board[i][j].type === 'k' && board[i][j].color === game.turn()) return board[i][j].square;
+    for (let row of board) {
+      for (let square of row) {
+        if (square?.type === 'k' && square.color === game.turn()) return square.square;
       }
     }
     return null;
+  }
+
+  function updateSquareStyles(additionalStyles = {}) {
+    const kingSquare = game.in_check() ? getKingSquare() : null;
+    setCustomSquaresStyles({
+      ...(kingSquare ? { [kingSquare]: styles.check } : {}),
+      ...additionalStyles,
+    });
   }
 
   function makeAMove(move) {
     const gameCopy = { ...game };
     const result = gameCopy.move(move);
     setGame(gameCopy);
-
     if (result) {
       setLastMove(move);
     }
-
     return result;
   }
 
   function onSquareClick(square, piece) {
     if (selectedSquare) {
       setSelectedSquare(null);
-      let kingSquare;
-      if (game.in_check()) {
-        kingSquare = getKingSquare();
+      updateSquareStyles();
+    }
+
+    if (square !== selectedSquare && piece && piece[0] === orientation[0]) {
+      const moves = game.moves({square, verbose: true});
+      if (moves.length > 0) {
+        setSelectedSquare(square);
+        const squareStyles = {}
+        moves.forEach((move) => {
+          const enemy = orientation[0] === 'w' ? 'b' : 'w';
+          squareStyles[move.to] = game.get(move.to) && game.get(move.to).color === enemy ? styles.capture : styles.move;
+        });
+        updateSquareStyles(squareStyles);
       }
-      if (kingSquare) setCustomSquaresStyles({ [kingSquare]: styles.check });
-      else setCustomSquaresStyles({});
     }
     if (selectedSquare && square !== selectedSquare) {
       const move = makeAMove({
@@ -71,31 +85,10 @@ export default function ChessGame() {
         to: square,
         promotion: "q",
       });
-      
-      if (move === null) return false;
-      else socket.emit('move', move);
-
-      let kingSquare;
-      if (game.in_check()) {
-        kingSquare = getKingSquare();
-      }
-      if (kingSquare) setCustomSquaresStyles({ [kingSquare]: styles.check });
-      else setCustomSquaresStyles({});
-
-      setSelectedSquare(null);
-      return true;
-    }
-    if (square !== selectedSquare && piece && piece[0] === orientation[0]) {
-      const moves = game.moves({square, verbose: true});
-      if (moves.length > 0) {
-        setSelectedSquare(square);
-
-        const squareStyles = {}
-        moves.forEach((move) => {
-          const enemy = orientation[0] === 'w' ? 'b' : 'w';
-          squareStyles[move.to] = game.get(move.to) && game.get(move.to).color === enemy ? styles.capture : styles.move;
-        });
-        setCustomSquaresStyles(squareStyles);
+      if (move) {
+        socket.emit('move', move);
+        updateSquareStyles();
+        setSelectedSquare(null);
       }
     }
   }
@@ -107,12 +100,7 @@ export default function ChessGame() {
       const enemy = orientation[0] === 'w' ? 'b' : 'w';
       squareStyles[move.to] = game.get(move.to) && game.get(move.to).color === enemy ? styles.capture : styles.move;
     });
-    let kingSquare;
-    if (game.in_check()) {
-      kingSquare = getKingSquare();
-    }
-    if (kingSquare) setCustomSquaresStyles({ ...squareStyles, [kingSquare]: styles.check });
-    else setCustomSquaresStyles(squareStyles);
+    updateSquareStyles(squareStyles);
   }
 
   function onPieceDrop(sourceSquare, targetSquare, piece) {
@@ -122,12 +110,7 @@ export default function ChessGame() {
       promotion: piece[1].toLowerCase() ?? "q",
     });
     setSelectedSquare(null);
-    let kingSquare;
-    if (game.in_check()) {
-      kingSquare = getKingSquare();
-    }
-    if (kingSquare) setCustomSquaresStyles({ [kingSquare]: styles.check });
-    else setCustomSquaresStyles({});
+    updateSquareStyles();
     if (move === null) return false;
     else socket.emit('move', move);
     return true;
@@ -142,13 +125,11 @@ export default function ChessGame() {
         onSquareClick={onSquareClick}
         onPieceDragBegin={onPieceDragBegin}
         onPieceDrop={onPieceDrop}
-        customSquareStyles={
-          {
-            ...customSquareStyles,
-            [lastMove?.from]: styles.lastMove,
-            [lastMove?.to]: styles.lastMove,
-          }
-        }
+        customSquareStyles={{
+          [lastMove?.from]: styles.lastMove,
+          [lastMove?.to]: styles.lastMove,
+          ...customSquareStyles,
+        }}
         customDropSquareStyle={{}}
       />
       <button onClick={() => setOrientation(orientation === 'white' ? 'black' : 'white')}>Flip board</button>
