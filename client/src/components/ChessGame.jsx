@@ -20,6 +20,9 @@ const styles = {
   },
 }
 
+const moveSound = new Audio('/sounds/move.mp3');
+const captureSound = new Audio('/sounds/capture.mp3');
+
 export default function ChessGame() {
   const [game, setGame] = useState(new Chess());
   const [orientation, setOrientation] = useState('white');
@@ -57,6 +60,9 @@ export default function ChessGame() {
     if (result) {
       setGame(gameCopy);
       setLastMove(move);
+
+      if (result.captured) captureSound.play();
+      else moveSound.play();
     }
     return result;
   }
