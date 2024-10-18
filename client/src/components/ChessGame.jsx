@@ -21,7 +21,9 @@ const styles = {
 }
 
 const moveSound = new Audio('/sounds/move.mp3');
+moveSound.volume = 0.25;
 const captureSound = new Audio('/sounds/capture.mp3');
+captureSound.volume = 0.25;
 
 export default function ChessGame() {
   const [game, setGame] = useState(new Chess());
