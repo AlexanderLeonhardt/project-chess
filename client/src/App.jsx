@@ -1,12 +1,20 @@
-import ChessGame from './components/ChessGame'
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import './global.css';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import HomePage from './routes/HomePage';
+import NotFound from './NotFound';
 
-function App() {
-  return (
-    <div>
-      <h1>Project Chess</h1>
-      <ChessGame />
-    </div>
-  );
-}
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <HomePage />,
+    errorElement: <NotFound />,
+  }
+]);
 
-export default App
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <RouterProvider router={router}/>
+  </StrictMode>,
+);
