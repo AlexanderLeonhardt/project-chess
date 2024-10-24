@@ -33,10 +33,9 @@ export default function ChessGame({ gameId, gameFen }) {
   const [lastMove, setLastMove] = useState(null);
 
   useEffect(() => {
-    socket.on('opponentMoved', (move) => {
-      console.log('the opponent moved');
-      makeAMove(move);
-    });
+    socket.emit('joinGame', gameId);
+
+    socket.on('opponentMoved', (move) => makeAMove(move));
 
     return () => {
       socket.off('opponentMoved');
@@ -154,7 +153,6 @@ export default function ChessGame({ gameId, gameFen }) {
           : <p>Black has won</p>
         )}
         {game.in_draw() && <p>Game has ended in a draw</p>}
-        {/* <button onClick={() => setGame(new Chess())}>New game</button> */}
       </div>}
     </div>
   );

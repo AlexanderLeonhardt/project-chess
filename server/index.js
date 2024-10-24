@@ -37,14 +37,19 @@ app.post('/game', (req, res) => {
 io.on("connection", (socket) => {
   console.log('New connection');
 
+  socket.on('joinGame', (gameId) => {
+    const game = games[gameId];
+    if (game) {
+      socket.join(gameId);
+      console.log(`${socket.id} joined room [${gameId}]`);
+    }
+  });
+
   socket.on('move', ({gameId, move}) => {
     const game = games[gameId];
     if (game?.move(move)) {
       socket.to(gameId).emit('opponentMoved', move);
       console.log(`${socket.id} made a move in game [${gameId}]`);
-      console.log(game.fen());
-    } else {
-      socket.emit('invalidMove');
     }
   });
 });
