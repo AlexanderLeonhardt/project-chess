@@ -25,14 +25,12 @@ moveSound.volume = 0.25;
 const captureSound = new Audio('/sounds/capture.mp3');
 captureSound.volume = 0.25;
 
-export default function ChessGame() {
-  const [game, setGame] = useState(new Chess());
+export default function ChessGame({ gameId, gameFen }) {
+  const [game, setGame] = useState(new Chess(gameFen));
   const [orientation, setOrientation] = useState('white');
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [customSquareStyles, setCustomSquaresStyles] = useState({});
   const [lastMove, setLastMove] = useState(null);
-  const [roomId, setRoomId] = useState(null);
-  const [inputRoomId, setInputRoomId] = useState('');
 
   useEffect(() => {
     socket.on('opponentMoved', (move) => {
@@ -40,18 +38,8 @@ export default function ChessGame() {
       makeAMove(move);
     });
 
-    socket.on('createdRoom', (id) => {
-      setRoomId(id);
-    });
-
-    socket.on('joinedRoom', (id) => {
-      setRoomId(id);
-    });
-
     return () => {
-      socket.off('move');
-      socket.off('createdRoom');
-      socket.off('joinedRoom');
+      socket.off('opponentMoved');
     }
   }, []);
 
@@ -111,7 +99,7 @@ export default function ChessGame() {
         promotion: "q",
       });
       if (move) {
-        socket.emit('move', {roomId, move});
+        socket.emit('move', {gameId, move});
         updateSquareStyles();
         setSelectedSquare(null);
       }
@@ -137,46 +125,37 @@ export default function ChessGame() {
     setSelectedSquare(null);
     updateSquareStyles();
     if (move === null) return false;
-    else socket.emit('move', {roomId, move});
+    else socket.emit('move', {gameId, move});
     return true;
   }
 
   return (
-    roomId ? (
-      <div className='chess-container'>
-        {roomId && <p>Room ID: {roomId}</p>}
-        <Chessboard 
-          position={game.fen()} 
-          boardOrientation={orientation}
-          isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
-          onSquareClick={onSquareClick}
-          onPieceDragBegin={onPieceDragBegin}
-          onPieceDrop={onPieceDrop}
-          customSquareStyles={{
-            [lastMove?.from]: styles.lastMove,
-            [lastMove?.to]: styles.lastMove,
-            ...customSquareStyles,
-          }}
-          customDropSquareStyle={{}}
-        />
-        <button onClick={() => setOrientation(orientation === 'white' ? 'black' : 'white')}>Flip board</button>
-        {game.game_over() && <div>
-          <p>Game over</p>
-          {game.in_checkmate() && (
-            game.turn() === 'b' 
-            ? <p>White has won</p>
-            : <p>Black has won</p>
-          )}
-          {game.in_draw() && <p>Game has ended in a draw</p>}
-          <button onClick={() => setGame(new Chess())}>New game</button>
-        </div>}
-      </div>
-    ) : (
-      <div>
-        <button onClick={() => socket.emit('createRoom')}>Create Game</button>
-        <input placeholder="Room ID" value={inputRoomId} onChange={(e) => setInputRoomId(e.target.value)}></input>
-        <button onClick={() => socket.emit('joinRoom', inputRoomId)}>Join Game</button>
-      </div>
-    )
+    <div className='chess-container'>
+      <Chessboard 
+        position={game.fen()} 
+        boardOrientation={orientation}
+        isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
+        onSquareClick={onSquareClick}
+        onPieceDragBegin={onPieceDragBegin}
+        onPieceDrop={onPieceDrop}
+        customSquareStyles={{
+          [lastMove?.from]: styles.lastMove,
+          [lastMove?.to]: styles.lastMove,
+          ...customSquareStyles,
+        }}
+        customDropSquareStyle={{}}
+      />
+      <button onClick={() => setOrientation(orientation === 'white' ? 'black' : 'white')}>Flip board</button>
+      {game.game_over() && <div>
+        <p>Game over</p>
+        {game.in_checkmate() && (
+          game.turn() === 'b' 
+          ? <p>White has won</p>
+          : <p>Black has won</p>
+        )}
+        {game.in_draw() && <p>Game has ended in a draw</p>}
+        {/* <button onClick={() => setGame(new Chess())}>New game</button> */}
+      </div>}
+    </div>
   );
 }
