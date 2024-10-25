@@ -1,18 +1,30 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCookies } from 'react-cookie';
+import { nanoid } from 'nanoid';
 
 const HomePage = () => {
-  const handleCreateRoom = async () => {
+  const navigate = useNavigate();
+  const [cookies, setCookie] = useCookies(['userId']);
+
+  useEffect(() => {
+    const userId = cookies.userId || nanoid(8);
+    if (!cookies.userId) setCookie('userId', userId, { path: '/', maxAge: 7 * 24 * 60 * 60 });
+  }, [cookies, setCookie]);
+
+  const handlePlayFriend = async () => {
     try {
-      const response = await fetch('http://localhost:3001/game', {
+      const response = await fetch('http://192.168.1.151:3001/game', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ userId: cookies.userId }),
       });
       const data = await response.json();
-
       if (response.ok) {
         const { id } = data;
-        console.log(`Room created with ID: ${id}`);
+        navigate(`/${id}`);
       } else {
         console.error('Failed to create game', data);
       }
@@ -20,11 +32,11 @@ const HomePage = () => {
       console.error('Error creating game:', error);
     }
   }
-
+  
   return (
     <div>
       <h1>Project Chess</h1>
-      <button onClick={handleCreateRoom}>Create Room</button>
+      <button onClick={handlePlayFriend}>Play with a friend</button>
     </div>
   );
 }

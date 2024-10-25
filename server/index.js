@@ -18,20 +18,40 @@ const io = new Server(httpServer, {
 const games = {};
 
 app.use(cors());
-
-app.get('/game/:id', (req, res) => {
-  const { id } = req.params;
-  const game = games[id];
-  if (game) return res.json({fen: game.fen()});
-  res.sendStatus(404);
-});
+app.use(express.json());
 
 app.post('/game', (req, res) => {
   const id = nanoid(8);
+  const { userId } = req.body;
+
+  if (!userId) {
+    console.log('Request Body:', req.body);
+    return res.sendStatus(400);
+  }
+
   const game = new Chess();
-  games[id] = game;
+
+  games[id] = { 
+    game,
+    players: { 
+      [userId]: { color: 'white' } 
+    }, 
+  };
+
   res.status(200).json({ id });
   console.log(`Created game [${id}]`);
+});
+
+app.get('/game/:id', (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.query;
+
+  const game = games[id];
+  if (!game) return res.sendStatus(404);
+
+  const color = game.players[userId]?.color || 'black';
+    
+  return res.json({fen: game.game.fen(), color});
 });
 
 io.on("connection", (socket) => {
@@ -46,7 +66,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on('move', ({gameId, move}) => {
-    const game = games[gameId];
+    const game = games[gameId].game;
     if (game?.move(move)) {
       socket.to(gameId).emit('opponentMoved', move);
       console.log(`${socket.id} made a move in game [${gameId}]`);

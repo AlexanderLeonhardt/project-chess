@@ -25,9 +25,8 @@ moveSound.volume = 0.25;
 const captureSound = new Audio('/sounds/capture.mp3');
 captureSound.volume = 0.25;
 
-export default function ChessGame({ gameId, gameFen }) {
+export default function ChessGame({ gameId, gameFen, orientation}) {
   const [game, setGame] = useState(new Chess(gameFen));
-  const [orientation, setOrientation] = useState('white');
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [customSquareStyles, setCustomSquaresStyles] = useState({});
   const [lastMove, setLastMove] = useState(null);
@@ -144,7 +143,6 @@ export default function ChessGame({ gameId, gameFen }) {
         }}
         customDropSquareStyle={{}}
       />
-      <button onClick={() => setOrientation(orientation === 'white' ? 'black' : 'white')}>Flip board</button>
       {game.game_over() && <div>
         <p>Game over</p>
         {game.in_checkmate() && (
