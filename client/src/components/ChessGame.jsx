@@ -129,20 +129,36 @@ export default function ChessGame({ gameId, gameFen, orientation}) {
 
   return (
     <div className='chess-container'>
-      <Chessboard 
-        position={game.fen()} 
-        boardOrientation={orientation}
-        isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
-        onSquareClick={onSquareClick}
-        onPieceDragBegin={onPieceDragBegin}
-        onPieceDrop={onPieceDrop}
-        customSquareStyles={{
-          [lastMove?.from]: styles.lastMove,
-          [lastMove?.to]: styles.lastMove,
-          ...customSquareStyles,
-        }}
-        customDropSquareStyle={{}}
-      />
+      {orientation ? (
+        <Chessboard 
+          position={game.fen()} 
+          boardOrientation={orientation}
+          isDraggablePiece={({piece}) => (game.turn() === orientation[0]) && (game.game_over() ? false : piece[0] === orientation[0])}
+          onSquareClick={onSquareClick}
+          onPieceDragBegin={onPieceDragBegin}
+          onPieceDrop={onPieceDrop}
+          customSquareStyles={{
+            [lastMove?.from]: styles.lastMove,
+            [lastMove?.to]: styles.lastMove,
+            ...customSquareStyles,
+          }}
+          customDropSquareStyle={{}}
+        />
+      ) : (
+        <>
+          <p>You are currently spectating a game</p>
+          <Chessboard 
+            position={game.fen()} 
+            boardOrientation={'white'}
+            isDraggablePiece={() => false}
+            customSquareStyles={{
+              [lastMove?.from]: styles.lastMove,
+              [lastMove?.to]: styles.lastMove,
+              ...customSquareStyles,
+            }}
+          />
+        </>
+      )}
       {game.game_over() && <div>
         <p>Game over</p>
         {game.in_checkmate() && (

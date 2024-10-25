@@ -20,6 +20,7 @@ const games = {};
 app.use(cors());
 app.use(express.json());
 
+// creating a new game
 app.post('/game', (req, res) => {
   const id = nanoid(8);
   const { userId } = req.body;
@@ -30,11 +31,12 @@ app.post('/game', (req, res) => {
   }
 
   const game = new Chess();
+  const color = Math.random() * 2 > 1 ? 'white' : 'black';
 
   games[id] = { 
     game,
     players: { 
-      [userId]: { color: 'white' } 
+      [userId]: { color } 
     }, 
   };
 
@@ -42,16 +44,31 @@ app.post('/game', (req, res) => {
   console.log(`Created game [${id}]`);
 });
 
+// joining a game
 app.get('/game/:id', (req, res) => {
   const { id } = req.params;
   const { userId } = req.query;
-
   const game = games[id];
+
+  // game doesn't exist
   if (!game) return res.sendStatus(404);
 
-  const color = game.players[userId]?.color || 'black';
-    
-  return res.json({fen: game.game.fen(), color});
+  // player joining back
+  if (game.players[userId]) return res.json({fen: game.game.fen(), color: game.players[userId].color});
+
+  // opponent joining
+  let players = Object.keys(game.players);
+  if (players.length === 1) {
+    const hostPlayer = game.players[players[0]];
+
+    const color = hostPlayer.color === 'white' ? 'black' : 'white';
+    game.players[userId] = { color };
+
+    return res.json({fen: game.game.fen(), color: 'spectator'});
+  }
+  
+  // spectator joining
+  return res.json({fen: game.game.fen()});
 });
 
 io.on("connection", (socket) => {

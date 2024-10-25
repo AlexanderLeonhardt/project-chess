@@ -7,7 +7,7 @@ import { nanoid } from 'nanoid';
 const Room = () => {
   const { gameId } = useParams();
   const [gameFen, setGameFen] = useState(null);
-  const [orientation, setOrientation] = useState('');
+  const [orientation, setOrientation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [cookies, setCookie] = useCookies(['userId']);
 
