@@ -14,7 +14,7 @@ const HomePage = () => {
 
   const handlePlayFriend = async () => {
     try {
-      const response = await fetch('http://192.168.1.151:3001/game', {
+      const response = await fetch('api/game', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

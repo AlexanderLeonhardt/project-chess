@@ -16,7 +16,7 @@ const Room = () => {
       const userId = cookies.userId || nanoid(8);
       if (!cookies.userId) setCookie('userId', userId, { path: '/', maxAge: 7 * 24 * 60 * 60 });
 
-      const response = await fetch(`http://192.168.1.151:3001/game/${gameId}?userId=${userId}`);
+      const response = await fetch(`/api/game/${gameId}?userId=${userId}`);
       
       if (response.ok) {
         const data = await response.json();

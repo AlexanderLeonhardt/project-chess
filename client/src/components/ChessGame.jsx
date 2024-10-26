@@ -3,7 +3,7 @@ import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { io } from 'socket.io-client';
 
-const socket = io('http://192.168.1.151:3001');
+const socket = io();
 
 const styles = {
   move: { 
